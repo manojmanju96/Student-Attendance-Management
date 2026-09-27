@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Civil Attendance Manager — Prototype V1.9</title>
+<style>
+:root{--blue:#1769d2;--blue2:#eaf3ff;--green:#18864b;--red:#c73535;--orange:#c97900;--ink:#172033;--muted:#657084;--line:#dbe2ec;--bg:#f5f8fc;--card:#fff;--shadow:0 5px 18px rgba(28,50,80,.09);--r:16px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:var(--ink)}
+.app{max-width:1180px;margin:auto;padding:18px}.top{background:var(--card);border-radius:20px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px}.brand{font-size:24px;font-weight:800}.sub{color:var(--muted);margin-top:5px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);margin:12px 0}.module{cursor:pointer}.module:hover{border-color:#b9d3f6}.modulehead{display:flex;align-items:center;justify-content:space-between}.moduletitle{font-size:18px;font-weight:800}.pill{background:var(--blue2);color:var(--blue);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+button,input,select{font:inherit}button{border:0;border-radius:12px;padding:11px 15px;cursor:pointer;font-weight:700}.primary{background:var(--blue);color:white}.success{background:var(--green);color:white}.danger{background:var(--red);color:white}.secondary{background:white;border:1px solid var(--line);color:var(--ink)}.wide{width:100%}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.panel{display:none;margin-top:12px}.panel.open{display:block}.item{display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--line);border-radius:12px;margin:8px 0;background:#fff}.item button{padding:8px 11px}
+label{display:block;font-weight:700;font-size:13px;margin:12px 0 6px}input,select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;background:white}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.semester-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.semester-grid .semester{min-height:92px;padding:10px;margin:0}.semester-grid .sectiontitle{font-size:13px;margin:0 0 4px}.semester-grid .big{font-size:20px}.semester-grid .muted{font-size:11px}.semester-grid .sessionline{font-size:10px;margin-top:3px}.quick button{min-height:54px;padding:8px;text-align:center}.quick b{font-size:12px;margin-bottom:2px}.quick span{font-size:10px;color:var(--muted)}.sectiontitle{font-size:18px;font-weight:800;margin:18px 0 10px}.hidden{display:none!important}.notice{padding:12px;border-radius:12px;background:#f8fafc;border:1px solid var(--line);color:var(--muted);font-size:13px}.ok{background:#effaf3;border-color:#b8e3c8;color:#146b3d}.warn{background:#fff8e8;border-color:#f1d28e;color:#805500}.err{background:#fff0f0;border-color:#efb6b6;color:#9e2727}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}.table{width:100%;border-collapse:collapse;min-width:720px}.table th,.table td{padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}.table th{background:#f5f8fc;position:sticky;top:0}.semester{min-height:150px}.big{font-size:28px;font-weight:800}.muted{color:var(--muted)}.view{display:none}.view.active{display:block}.back{margin-bottom:10px}.hero{background:linear-gradient(135deg,#1769d2,#3989e8);color:#fff}.hero .muted{color:#e4efff}.quick button{width:100%;min-height:72px;background:white;border:1px solid var(--line);text-align:left}.quick b{display:block;font-size:15px;margin-bottom:5px}.searchrow{display:grid;grid-template-columns:1fr 1fr 2fr auto;gap:8px}.tag{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#eef2f7}
+@media(max-width:700px){.app{padding:10px}.grid,.grid3,.grid6,.searchrow{grid-template-columns:1fr}.brand{font-size:20px}.hero{padding:14px}}
+<style>.presentCell{background:#effaf3;color:#146b3d;font-weight:700}.absentCell{background:#fff0f0;color:#9e2727;font-weight:700}.promote{min-width:180px}.att-choice.p-choice.selected{background:#18864b!important;color:#fff!important;border-color:#18864b!important}.att-choice.a-choice.selected{background:#c73535!important;color:#fff!important;border-color:#c73535!important}</style>
+<style>
+/* V1.3 compact mobile dashboard/table regression fixes */
+.semester-grid,.grid6{grid-template-columns:repeat(3,1fr)}
+.semester-grid .card{box-shadow:none}
+.att-table th,.att-table td{padding:5px 3px;overflow-wrap:anywhere}
+.att-table input[type=radio]{width:24px;height:24px;margin:0}
+.history-compact{font-size:10px;min-width:0;table-layout:fixed}
+.history-compact th,.history-compact td{padding:4px 3px;overflow-wrap:anywhere}
+@media(max-width:700px){.ay-saved-grid{grid-template-columns:repeat(3,1fr);gap:5px}.ay-saved-card{padding:8px}.ay-saved-card .count{font-size:18px}.semester-grid,.grid6{grid-template-columns:repeat(3,1fr);gap:5px}.semester-grid .semester{padding:7px;min-height:78px}.semester-grid .sectiontitle{font-size:11px}.semester-grid .big{font-size:17px}.quick button{min-height:48px;padding:5px 2px}.quick b{font-size:10px}.quick span{font-size:8px}.app{padding:7px}.top{padding:10px;margin-bottom:8px}.brand{font-size:17px}.sub{font-size:10px}.card{padding:10px;margin:7px 0}}
+.att-choice.p-choice.selected{background:#18864b!important;color:#fff!important;border-color:#18864b!important}.att-choice.a-choice.selected{background:#c73535!important;color:#fff!important;border-color:#c73535!important}</style><style>
+/* V1.4 compact/medium typography and attendance controls */
+.semester-grid .sectiontitle{font-size:16px;font-weight:800;margin:7px 0 4px}
+.semester-grid .big{font-size:22px}
+.semester-grid .muted,.semester-grid .sessionline,.semester-grid .tag{font-size:13px}
+.quick button{text-align:center;min-height:58px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.quick b{font-size:15px;margin:0 0 2px}.quick span{font-size:13px}
+.att-table{font-size:14px!important;table-layout:auto!important;width:100%!important;min-width:0!important}
+.att-table th,.att-table td{padding:6px 5px}
+.att-table th:first-child,.att-table td:first-child{width:34px;white-space:nowrap}
+.att-table th:nth-child(2),.att-table td:nth-child(2){width:1%;white-space:nowrap}
+.att-table th:nth-child(3),.att-table th:nth-child(4),.att-table td:nth-child(3),.att-table td:nth-child(4){width:48px;text-align:center}
+.att-choice{position:relative;display:inline-flex;width:30px;height:30px;border:1px solid #b9c4d2;border-radius:6px;background:#fff;align-items:center;justify-content:center;cursor:pointer;font-weight:800;font-size:14px}
+.att-choice input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.att-choice.p-choice{color:#18864b}.att-choice.a-choice{color:#c73535}
+.att-choice.p-choice.selected{background:#18864b;color:#fff;border-color:#18864b;border-width:2px}.att-choice.a-choice.selected{background:#c73535;color:#fff;border-color:#c73535;border-width:2px}.att-preview-badge{display:inline-flex;width:30px;height:30px;border-radius:6px;align-items:center;justify-content:center;font-weight:800}.preview-p{background:#18864b;color:#fff}.preview-a{background:#c73535;color:#fff}
+.att-edit-card{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
+.saved-session-card{cursor:pointer;text-align:center;min-width:120px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff;font-weight:800}
+.saved-session-card small{display:block;color:var(--muted);font-weight:600;margin-top:3px}
+.preview-cards{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.no-att-scroll{overflow-x:hidden!important}
+.ay-saved-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.ay-saved-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;box-shadow:var(--shadow)}.ay-saved-card b{font-size:15px}.ay-saved-card .count{font-size:22px;font-weight:800;margin-top:4px}.ay-sem-card{border:1px solid var(--line);border-radius:12px;margin:9px 0;overflow:hidden;background:#fff}.ay-sem-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;background:#fff;text-align:left;color:var(--ink)}.ay-sem-toggle small{display:block;color:var(--muted);margin-top:3px}.ay-sem-body{padding:0 10px 10px}.delete-student{padding:7px 9px;font-size:11px} .deleted-row{opacity:.45;text-decoration:line-through}
+.today-sem-card{border:1px solid var(--line);border-radius:12px;background:#fff;margin:8px 0;overflow:hidden}.today-sem-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:0;padding:12px;text-align:left;color:var(--ink)}.today-sem-toggle small{display:block;color:var(--muted);font-weight:600;margin-top:3px;font-size:11px}.today-sem-body{padding:0 10px 10px}.today-session{border-top:1px solid var(--line);padding:9px 0}.today-filter{max-width:240px}.today-filter label{font-size:11px}.today-filter select{padding:8px;font-size:12px}.today-sem-card.open .today-sem-toggle{background:#f7fbff}.today-sem-card .today-session .modulehead button{padding:8px 10px;font-size:12px}
+.att-choice.p-choice.selected{background:#18864b!important;color:#fff!important;border-color:#18864b!important}.att-choice.a-choice.selected{background:#c73535!important;color:#fff!important;border-color:#c73535!important}</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">Civil Attendance Manager</div>
+    <div class="sub">Civil Engineering Department · Prototype V1.0</div>
+  </div>
+
+  <div id="home" class="view active">
+    <div class="card module" onclick="togglePanel('ayPanel')">
+      <div class="modulehead"><div><div class="moduletitle">📚 Academic Year</div><div class="sub">Manage academic-year semester rosters and attendance</div></div><span class="pill">OPEN ▼</span></div>
+      <div id="ayPanel" class="panel" onclick="event.stopPropagation()">
+        <div id="ayList"></div>
+        <button class="primary wide" onclick="show('addAY')">＋ Add New Academic Year</button>
+      </div>
+    </div>
+    <div class="card module" onclick="togglePanel('dbPanel')">
+      <div class="modulehead"><div><div class="moduletitle">👨‍🎓 Student Database</div><div class="sub">Master student information and batches</div></div><span class="pill">OPEN ▼</span></div>
+      <div id="dbPanel" class="panel" onclick="event.stopPropagation()">
+        <div id="dbList"></div>
+        <button class="primary wide" onclick="show('addDB')">＋ Add New Batch</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="addAY" class="view">
+    <button class="secondary back" onclick="goHome()">← Back</button>
+    <div class="card"><div class="sectiontitle">Add New Academic Year</div>
+      <div class="grid">
+        <div><label>Academic Year *</label><input id="ayYear" placeholder="e.g. 2026-27"></div>
+        <div><label>Department *</label><select id="ayDept"><option selected>Civil Engineering</option><option>Computer Science and Engineering</option><option>Information Science and Engineering</option><option>Electronics and Communication Engineering</option><option>Electrical and Electronics Engineering</option><option>Mechanical Engineering</option><option>Artificial Intelligence and Data Science</option><option>Artificial Intelligence and Machine Learning</option><option>Biotechnology</option><option>Construction Technology</option><option>Other</option></select></div>
+        <div><label>College *</label><input id="ayCollege" value="Cambridge Institute of Technology"></div>
+        <div><label>Semester *</label><select id="aySem"><option value="">Select Semester</option><option>3rd</option><option>4th</option><option>5th</option><option>6th</option><option>7th</option><option>8th</option></select></div>
+      </div>
+      <label>Academic Year Student List</label><input id="ayFile" type="file" accept=".xlsx,.xls,.xlsm,.csv">
+      <div class="notice">Expected compact roster: USN + Student Name + optional Status + optional Admission Type. The Academic Year reader is separate from Student Database.</div>
+      <div id="ayMsg" class="notice hidden"></div>
+      <div id="aySetupStatus"></div>
+      <div class="actions"><button class="secondary" onclick="goHome()">Cancel</button><button class="primary" onclick="previewAY()">Preview</button><button id="openAYSetupBtn" class="success hidden" onclick="openAYSetupDashboard()">Open Dashboard</button></div>
+    </div>
+  </div>
+
+  <div id="ayPreview" class="view">
+    <button class="secondary back" onclick="show('addAY')">← Back</button>
+    <div class="card"><div class="sectiontitle">Academic Year Upload Preview</div><div id="ayPreviewMeta" class="notice"></div><div class="tablewrap"><table class="table"><thead><tr><th>Sl.</th><th>USN</th><th>Student Name</th><th>Status</th><th>Admission Type</th></tr></thead><tbody id="ayPreviewBody"></tbody></table></div><div class="actions"><button class="secondary" onclick="show('addAY')">Cancel</button><button class="success" onclick="saveAY()">Save</button></div></div>
+  </div>
+
+  <div id="ayDash" class="view"></div>
+
+  <div id="addDB" class="view">
+    <button class="secondary back" onclick="goHome()">← Back</button>
+    <div class="card"><div class="sectiontitle">Add New Batch</div>
+      <label>Batch Year *</label><input id="dbYear" placeholder="e.g. 2021">
+      <label>Student Database File</label><input id="dbFile" type="file" accept=".xlsx,.xls,.xlsm,.csv">
+      
+      <div class="notice">Student Database reader retains all uploaded columns.</div>
+      <div id="dbMsg" class="notice hidden"></div>
+      <div class="actions"><button class="secondary" onclick="goHome()">Cancel</button><button class="primary" onclick="previewDB()">Preview</button></div>
+    </div>
+  </div>
+
+  <div id="dbPreview" class="view">
+    <button class="secondary back" onclick="show('addDB')">← Back</button>
+    <div class="card"><div class="sectiontitle">Student Database Preview</div><div id="dbPreviewMeta" class="notice"></div><div class="tablewrap"><table class="table" id="dbPreviewTable"></table></div><div class="actions"><button class="secondary" onclick="show('addDB')">Cancel</button><button class="success" onclick="saveDB()">Save</button></div></div>
+  </div>
+
+  <div id="dbDash" class="view"></div>
+  <div id="profile" class="view"></div>
+</div>
+
+<script>
+const KEY_AY='cam_ay_v18', KEY_DB='cam_db_v18', KEY_ATT='cam_att_v18';
+let pendingAY=null,pendingDB=null;
+
+function get(k){return JSON.parse(localStorage.getItem(k)||'[]')}
+function put(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function show(id){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
+function goHome(){renderHome();show('home')}
+function togglePanel(id){document.getElementById(id).classList.toggle('open');renderHome()}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function renderHome(){
+ const a=get(KEY_AY),b=get(KEY_DB);
+ document.getElementById('ayList').innerHTML=a.length?a.map((x,i)=>`<div class="item"><div><b>${esc(x.year)}</b><div class="muted">${esc(x.college)} · ${x.semesters.length} semester list(s)</div></div><button class="secondary" onclick="event.stopPropagation();openAY(${i})">Open</button></div>`).join(''):'';
+ document.getElementById('dbList').innerHTML=b.length?b.map((x,i)=>`<div class="item"><div><b>${esc(x.year)}</b><div class="muted">${x.rows.length} students</div></div><button class="secondary" onclick="event.stopPropagation();renderDBDashboard();show('dbDash')">Open</button></div>`).join(''):'';
+}
+function msg(id,text,cls='notice'){let e=document.getElementById(id);e.className='notice '+cls;e.textContent=text;e.classList.remove('hidden')}
+
+async function readFile(file, full){
+ if(!file) throw Error('Please choose a file.');
+ const name=file.name.toLowerCase();
+ const text=await file.text();
+ if(name.endsWith('.csv')){
+   const lines=text.split(/\r?\n/).filter(Boolean), rows=lines.map(l=>l.split(',').map(s=>s.trim()));
+   return full?csvFull(rows):compact(rows);
+ }
+ if(!window.XLSX) throw Error('Excel reader library is unavailable. Open the prototype with internet access so the Excel library can load.');
+ const data=new Uint8Array(await file.arrayBuffer()), wb=XLSX.read(data,{type:'array',cellDates:true});
+ const ws=wb.Sheets[wb.SheetNames[0]], rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+ return full?fullRows(rows):compact(rows);
+}
+function norm(s){return String(s??'').trim().toLowerCase().replace(/[^a-z0-9]/g,'')}
+function findHeader(rows, needName=true){
+ for(let r=0;r<Math.min(rows.length,60);r++){
+   const ns=rows[r].map(norm);
+   const usn=ns.findIndex(x=>['usn','universityseatnumber','studentusn'].includes(x));
+   const nm=ns.findIndex(x=>['nameofthestudent','studentname','fullname','name'].includes(x));
+   if(usn>=0 && (!needName||nm>=0)) return {r,usn,nm,ns};
+ }
+ return null;
+}
+function compact(rows){
+ const h=findHeader(rows); if(!h) throw Error('Could not find Academic Year headers: USN + Student Name.');
+ const status=h.ns.findIndex(x=>['status','studentstatus'].includes(x));
+ const adm=h.ns.findIndex(x=>['admissiontype','typeofadmission','entrytype'].includes(x));
+ const out=[];
+ for(let r=h.r+1;r<rows.length;r++){
+   const usn=String(rows[r][h.usn]??'').trim(), name=String(rows[r][h.nm]??'').trim();
+   if(!usn&&!name) continue;
+   out.push({usn,name,status:status>=0?String(rows[r][status]||'Active'):'Active',admissionType:adm>=0?String(rows[r][adm]||''):' '});
+ }
+ return out;
+}
+function fullRows(rows){
+ const h=findHeader(rows); if(!h) throw Error('Could not find Student Database headers: USN + Full Name/Student Name.');
+ const headers=rows[h.r].map((x,i)=>String(x??'').trim()||`Column ${i+1}`);
+ const out=[];
+ for(let r=h.r+1;r<rows.length;r++){
+   const vals=rows[r]; if(vals.every(v=>String(v??'').trim()==='')) continue;
+   const o={};headers.forEach((k,i)=>o[k]=vals[i]??'');out.push(o);
+ }
+ return {headers,rows:out};
+}
+function csvFull(rows){return fullRows(rows)}
+function previewAY(){
+ try{
+   const y=document.getElementById('ayYear').value.trim(),d=document.getElementById('ayDept').value.trim(),c=document.getElementById('ayCollege').value.trim(),s=document.getElementById('aySem').value;
+   if(!y||!d||!c||!s) throw Error('Fill Academic Year, Department, College and Semester.');
+   readFile(document.getElementById('ayFile').files[0],false).then(rows=>{
+     pendingAY={year:y,dept:d,college:c,semester:s,rows};
+     document.getElementById('ayPreviewMeta').textContent=`AY ${y} · ${s} Semester · ${rows.length} students`;
+     document.getElementById('ayPreviewBody').innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.usn)}</td><td>${esc(r.name)}</td><td><select data-i="${i}" data-k="status"><option ${norm(r.status)=='active'?'selected':''}>Active</option><option ${norm(r.status)=='detained'?'selected':''}>Detained</option><option ${norm(r.status)=='discontinued'?'selected':''}>Discontinued</option><option ${norm(r.status)=='changeofbranch'?'selected':''}>Change of Branch</option></select></td><td><select data-i="${i}" data-k="admissionType"><option value="">Select</option><option ${norm(r.admissionType).includes('regular')?'selected':''}>Regular</option><option ${norm(r.admissionType).includes('diploma')||norm(r.admissionType).includes('lateral')?'selected':''}>Diploma/Lateral</option><option ${norm(r.admissionType).includes('readmission')?'selected':''}>Re-admission</option></select></td></tr>`).join('');
+     show('ayPreview');
+   }).catch(e=>msg('ayMsg',e.message,'err'));
+ }catch(e){msg('ayMsg',e.message,'err')}
+}
+function saveAY(){
+ const y=pendingAY.year, arr=get(KEY_AY), idx=arr.findIndex(x=>x.year===y);
+ if(idx>=0 && arr[idx].semesters.some(s=>s.semester===pendingAY.semester)){alertBox('This Academic Year already has this semester.');return}
+ pendingAY.rows.forEach((r,i)=>{r.status=document.querySelector(`[data-i="${i}"][data-k="status"]`).value;r.admissionType=document.querySelector(`[data-i="${i}"][data-k="admissionType"]`).value});
+ if(idx<0) arr.push({year:y,dept:pendingAY.dept,college:pendingAY.college,semesters:[{semester:pendingAY.semester,rows:pendingAY.rows}]});
+ else arr[idx].semesters.push({semester:pendingAY.semester,rows:pendingAY.rows});
+ put(KEY_AY,arr);
+ const newIdx=idx<0?arr.length-1:idx;
+ const saved=arr[newIdx];
+ pendingAY=null;
+ document.getElementById('ayYear').value=saved.year;
+ document.getElementById('ayDept').value=saved.dept;
+ document.getElementById('ayCollege').value=saved.college;
+ document.getElementById('aySem').value='';
+ document.getElementById('ayFile').value='';
+ document.getElementById('aySetupStatus').innerHTML=`<div class="notice ok"><b>Saved Semester Lists</b><div class="ay-saved-grid">${saved.semesters.map(x=>`<div class="ay-saved-card"><b>${esc(x.semester)} Sem</b><div class="count">${x.rows.length}</div><div class="muted">students</div></div>`).join('')}</div><div style="margin-top:10px">You can upload another semester for AY ${esc(saved.year)} before opening the dashboard.</div></div>`;
+ document.getElementById('openAYSetupBtn').classList.remove('hidden');
+ show('addAY');
+ renderHome();
+}
+function openAYSetupDashboard(){const y=document.getElementById('ayYear').value.trim(),arr=get(KEY_AY),i=arr.findIndex(x=>x.year===y);if(i>=0)openAY(i);else goHome()}
+function alertBox(t){const d=document.createElement('div');d.className='card err';d.innerHTML='<b>'+esc(t)+'</b>';document.querySelector('.app').prepend(d);setTimeout(()=>d.remove(),3500)}
+
+function previewDB(){
+ try{
+   const y=document.getElementById('dbYear').value.trim(); if(!y) throw Error('Enter Batch Year.');
+   if(get(KEY_DB).some(x=>x.year===y)) throw Error('This batch already exists.');
+   readFile(document.getElementById('dbFile').files[0],true).then(data=>{
+     pendingDB={year:y,...data};
+     document.getElementById('dbPreviewMeta').textContent=`Batch ${y} · ${data.rows.length} students · ${data.headers.length} uploaded columns`;
+     document.getElementById('dbPreviewTable').innerHTML='<thead><tr>'+data.headers.map(h=>`<th>${esc(h)}</th>`).join('')+'</tr></thead><tbody>'+data.rows.map(r=>'<tr>'+data.headers.map(h=>`<td>${esc(r[h])}</td>`).join('')+'</tr>').join('')+'</tbody>';
+     show('dbPreview');
+   }).catch(e=>msg('dbMsg',e.message,'err'));
+ }catch(e){msg('dbMsg',e.message,'err')}
+}
+function saveDB(){const a=get(KEY_DB);a.push(pendingDB);put(KEY_DB,a);pendingDB=null;renderDBDashboard();show('dbDash')}
+function renderDBDashboard(){
+ const batches=get(KEY_DB);
+ document.getElementById('dbDash').innerHTML=`<button class="secondary back" onclick="goHome()">← Back</button><div class="card hero"><div class="sectiontitle">Student Database</div><div class="muted">${batches.length} batch${batches.length===1?'':'es'} · Master student information</div></div><div class="card"><div class="sectiontitle">Batch List</div><div id="batchCards">${batches.map((b,i)=>`<div class="ay-sem-card" id="batchCard_${i}"><button class="ay-sem-toggle" onclick="toggleBatchCard(${i})"><span><b>${esc(b.year)} Batch</b><small>${b.rows.length} students</small></span><span id="batchArrow_${i}">▼</span></button><div id="batchBody_${i}" class="ay-sem-body" style="display:none"><div class="notice"><b>${esc(b.year)} Batch</b> · ${b.rows.length} students</div><button class="primary wide" onclick="openDB(${i})">Open</button></div></div>`).join('')}</div><button class="primary wide" onclick="show('addDB')">＋ Add New Batch</button></div>`;
+}
+function toggleBatchCard(i){const body=document.getElementById('batchBody_'+i),arrow=document.getElementById('batchArrow_'+i);const open=body.style.display!=='none';body.style.display=open?'none':'block';arrow.textContent=open?'▼':'▲'}
+function openAY(i){
+ const a=get(KEY_AY)[i];
+ const active=a.semesters.filter(x=>!x.ended);
+ const odd=active.filter(x=>['3rd','5th','7th'].includes(x.semester));
+ const even=active.filter(x=>['4th','6th','8th'].includes(x.semester));
+ const visible=odd.length?odd:even;
+ document.getElementById('ayDash').innerHTML=`<button class="secondary back" onclick="goHome()">← Back</button>
+ <div class="card hero" style="padding:12px"><div style="font-size:18px;font-weight:800">${esc(a.year)}</div><div class="muted" style="font-size:11px">${esc(a.dept)} · ${esc(a.college)}</div><div style="margin-top:5px;font-size:11px">${new Date().toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}</div></div>
+ <div class="semester-grid">${visible.map(s=>`<div class="card semester"><div class="sectiontitle">${s.semester} Sem</div><div class="big">${s.rows.length}</div><div class="muted">Students</div><div class="sessionline">AM · <span class="tag">${sessionStatus(a.year,s.semester,'9:30 AM')}</span></div><div class="sessionline">PM · <span class="tag">${sessionStatus(a.year,s.semester,'2:30 PM')}</span></div></div>`).join('')}</div>
+ <div class="sectiontitle quick-title">Quick Access</div><div class="grid6 quick">
+ <button onclick="showAYStudents(${i})"><b>👨‍🎓 Student Data</b><span>Roster</span></button><button onclick="showTake(${i})"><b>📝 Attendance</b><span>Record</span></button><button onclick="showHistory(${i})"><b>📊 History</b><span>View</span></button><button onclick="showExport(${i})"><b>📤 Export</b><span>Download</span></button><button onclick="showSummary(${i})"><b>📈 Summary</b><span>Analysis</span></button><button onclick="showShortage(${i})"><b>⚠ Shortage</b><span>Check</span></button></div>
+ <div class="card" style="padding:10px;margin-top:10px"><div style="font-size:13px;font-weight:800">Today's Overview</div><div class="notice" style="font-size:11px;padding:7px;margin-top:5px">Only actual saved attendance is shown. Unrecorded sessions are Not Recorded.</div></div>`;
+ show('ayDash');
+}
+function sessionStatus(y,s,t){return get(KEY_ATT).some(x=>x.year===y&&x.semester===s&&x.time===t)?'Recorded':'Not Recorded'}
+function showAYStudents(i){
+ const a=get(KEY_AY)[i];
+ window._ayStudentDraft={index:i,data:JSON.parse(JSON.stringify(a))};
+ const body=a.semesters.map((st,si)=>`<div class="ay-sem-card"><button class="ay-sem-toggle" onclick="toggleAYSemester(${i},${si})"><span><b>${esc(st.semester)} Semester</b><small>${st.rows.length} students · Active ${st.rows.filter(r=>r.status==='Active').length}</small></span><span id="aySemArrow_${si}">▼</span></button><div id="aySemBody_${si}" class="ay-sem-body" style="display:none">${renderAYSemesterTable(i,si)}</div></div>`).join('');
+ document.getElementById('ayDash').innerHTML=`<button class="secondary back" onclick="openAY(${i})">← Back</button><div class="card"><div class="sectiontitle">Student Data · ${esc(a.year)}</div>${body}<div class="actions"><button class="success" onclick="saveAYStudentEdits(${i})">Save Changes</button><button class="secondary" onclick="openAY(${i})">Cancel</button></div></div>`; show('ayDash');
+}
+function ayDraft(){return window._ayStudentDraft?.data||get(KEY_AY)[window._ayStudentDraft?.index??0]}
+function toggleAYSemester(i,si){const el=document.getElementById('aySemBody_'+si),arrow=document.getElementById('aySemArrow_'+si);if(!el)return;const open=el.style.display==='block';el.style.display=open?'none':'block';arrow.textContent=open?'▼':'▲';}
+function renderAYSemesterTable(i,si){const a=ayDraft(),s=a.semesters[si];return `<div class="tablewrap" style="margin-top:8px"><table class="table"><thead><tr><th>Sl.</th><th>USN</th><th>Student Name</th><th>Status</th><th>Admission Type</th><th>Delete</th></tr></thead><tbody>${s.rows.map((r,ri)=>`<tr id="ayRow_${si}_${ri}" class="${r.__deleted?'deleted-row':''}"><td>${ri+1}</td><td>${esc(r.usn)}</td><td>${esc(r.name)}</td><td><select class="ayedit" data-sem="${si}" data-row="${ri}" data-field="status" ${r.__deleted?'disabled':''}><option ${r.status==='Active'?'selected':''}>Active</option><option ${r.status==='Detained'?'selected':''}>Detained</option><option ${r.status==='Discontinued'?'selected':''}>Discontinued</option><option ${r.status==='Change of Branch'?'selected':''}>Change of Branch</option></select></td><td><select class="ayedit" data-sem="${si}" data-row="${ri}" data-field="admissionType" ${r.__deleted?'disabled':''}><option value="" ${!r.admissionType?'selected':''}>Select</option><option ${r.admissionType==='Regular'?'selected':''}>Regular</option><option ${r.admissionType==='Diploma/Lateral'?'selected':''}>Diploma/Lateral</option><option ${r.admissionType==='Re-admission'?'selected':''}>Re-admission</option></select></td><td><button class="danger delete-student" onclick="deleteAYStudent(${i},${si},${ri})" ${r.__deleted?'disabled':''}>Delete</button></td></tr>`).join('')}</tbody></table></div>`}
+function deleteAYStudent(i,si,ri){const a=ayDraft(),r=a.semesters[si].rows[ri];if(!r)return;r.__deleted=true;document.getElementById('aySemBody_'+si).innerHTML=renderAYSemesterTable(i,si);}
+function saveAYStudentEdits(i){const draft=ayDraft();document.querySelectorAll('.ayedit').forEach(e=>{const r=draft.semesters[+e.dataset.sem].rows[+e.dataset.row];if(r&&!r.__deleted)r[e.dataset.field]=e.value});draft.semesters.forEach(s=>s.rows=s.rows.filter(r=>!r.__deleted));const all=get(KEY_AY);all[i]=draft;put(KEY_AY,all);window._ayStudentDraft=null;alertBox('Academic Year student data saved successfully.','ok');showAYStudents(i)}
+
+function showTake(i){
+ const a=get(KEY_AY)[i];
+ if(!a.semesters.length){alertBox('No semester roster exists.');return}
+ const today=new Date().toISOString().slice(0,10);
+ const opts='<option value="">None</option>'+a.semesters.map((x,j)=>x.ended?'':`<option value="${j}">${x.semester} Semester</option>`).join('');
+ document.getElementById('ayDash').innerHTML=`<button class="secondary back" onclick="openAY(${i})">← Back</button>
+ <div class="card"><div class="sectiontitle">Take Attendance</div>
+ <div class="grid">
+  <div><label>Semester</label><select id="attSem">${opts}</select></div>
+  <div><label>Date</label><input id="attDate" type="date" value="${today}" readonly></div>
+  <div><label>Time Slot</label><select id="attTime"><option>9:30 AM</option><option>2:30 PM</option></select></div>
+ </div>
+ <div id="attWorkArea" style="margin-top:8px"><div class="notice">Select a semester to display the attendance table.</div></div>
+ <div id="savedAttendanceArea"></div></div>`;
+ window._attAY=i;
+ renderTodayAttendanceCards(i);
+ document.getElementById('attSem').onchange=e=>{
+   const v=e.target.value;
+   if(v===''){document.getElementById('attWorkArea').innerHTML='<div class="notice">Select a semester to display the attendance table.</div>';return}
+   const sem=a.semesters[+v].semester, time=document.getElementById('attTime').value;
+   const exists=get(KEY_ATT).findIndex(x=>x.year===a.year&&x.semester===sem&&x.date===today&&x.time===time);
+   if(exists>=0) toggleTodayAttendanceCard(i,sem,true);
+   else loadAttendanceWorkArea(i,+v,false);
+ };
+ document.getElementById('attTime').onchange=()=>{
+   const v=document.getElementById('attSem').value;if(v==='')return;
+   const sem=a.semesters[+v].semester, time=document.getElementById('attTime').value, exists=get(KEY_ATT).findIndex(x=>x.year===a.year&&x.semester===sem&&x.date===today&&x.time===time);
+   if(exists>=0) toggleTodayAttendanceCard(i,sem,true); else loadAttendanceWorkArea(i,+v,false);
+ };
+}
+function renderTodayAttendanceCards(i,openSem=''){
+ const a=get(KEY_AY)[i],today=new Date().toISOString().slice(0,10);
+ const sessions=get(KEY_ATT).filter(x=>x.year===a.year&&x.date===today);
+ const semesters=a.semesters.filter(s=>!s.ended);
+ document.getElementById('savedAttendanceArea').innerHTML=`<div class="sectiontitle" style="font-size:16px;margin-top:14px">Today's Attendance</div>${semesters.map(s=>{
+   const ss=sessions.filter(x=>x.semester===s.semester).sort((x,y)=>x.time.localeCompare(y.time));
+   const am=ss.find(x=>x.time==='9:30 AM'),pm=ss.find(x=>x.time==='2:30 PM'),open=openSem===s.semester;
+   return `<div class="today-sem-card ${open?'open':''}">
+    <button class="today-sem-toggle" onclick="toggleTodayAttendanceCard(${i},'${esc(s.semester)}')"><span><b>${esc(s.semester)} Semester</b><small>${s.rows.filter(r=>r.status==='Active').length} Active Students · ${am?'AM ✓':'AM —'} · ${pm?'PM ✓':'PM —'}</small></span><span>${open?'▲':'▼'}</span></button>
+    <div id="today_${i}_${s.semester.replace(/[^a-z0-9]/gi,'')}" class="today-sem-body" style="display:${open?'block':'none'}">${open?renderTodaySemesterBody(i,s.semester,ss):''}</div>
+   </div>`;
+ }).join('')}`;
+}
+function toggleTodayAttendanceCard(i,sem,forceOpen=false){
+ const a=get(KEY_AY)[i],today=new Date().toISOString().slice(0,10),safe=sem.replace(/[^a-z0-9]/gi,'');
+ const el=document.getElementById(`today_${i}_${safe}`);
+ if(el && !forceOpen && el.style.display==='block'){renderTodayAttendanceCards(i,'');return}
+ renderTodayAttendanceCards(i,sem);
+}
+function renderTodaySemesterBody(i,sem,sessions){
+ const a=get(KEY_AY)[i];
+ if(!sessions.length) return '<div class="notice">No attendance saved today for this semester.</div>';
+ return sessions.map(rec=>`<div class="today-session"><div class="modulehead"><div><b>${esc(rec.time)}</b><div class="muted" style="font-size:11px">Saved today</div></div><button class="primary" onclick="editSavedAttendance(${i},${get(KEY_ATT).indexOf(rec)})">✏ Edit Attendance</button></div><div class="today-filter"><label style="margin:7px 0 4px">View</label><select onchange="filterTodaySession(${i},${get(KEY_ATT).indexOf(rec)},this.value)"><option value="All">All Students</option><option value="P">Present Only</option><option value="A">Absent Only</option></select></div><div id="todaySession_${get(KEY_ATT).indexOf(rec)}">${renderTodaySessionTable(rec,'All')}</div></div>`).join('');
+}
+function renderTodaySessionTable(rec,filter){
+ const rows=(rec.rows||[]).filter(r=>filter==='All'||r.status===filter);
+ return `<div class="tablewrap no-att-scroll" style="margin-top:7px"><table class="table att-table"><thead><tr><th>Sl.</th><th>Student Name / USN</th><th>Attendance</th></tr></thead><tbody>${rows.map((r,n)=>`<tr class="${r.status==='P'?'presentCell':'absentCell'}"><td>${n+1}</td><td><b>${esc(r.name)}</b><br><span class="muted">${esc(r.usn)}</span></td><td style="text-align:center"><span class="att-preview-badge ${r.status==='P'?'preview-p':'preview-a'}">${r.status}</span></td></tr>`).join('')}</tbody></table></div>${!rows.length?'<div class="notice" style="margin-top:7px">No students match this view.</div>':''}`;
+}
+function filterTodaySession(i,id,filter){const el=document.getElementById('todaySession_'+id);if(el){const rec=get(KEY_ATT)[id];el.innerHTML=renderTodaySessionTable(rec,filter)}}
+
+function loadAttendanceWorkArea(i,si,editing,existingId=null){
+ const a=get(KEY_AY)[i],s=a.semesters[si];
+ const date=document.getElementById('attDate').value,time=document.getElementById('attTime').value;
+ let existing=null;
+ if(existingId!==null) existing=get(KEY_ATT)[existingId];
+ document.getElementById('attWorkArea').innerHTML=`<div class="actions" style="margin:8px 0">
+  <button class="primary" onclick="setAttendanceAll('P')">Mark All Present</button>
+  <button class="success" onclick="${editing?'updateAttendance('+i+','+existingId+')':'saveAttendanceFirst('+i+')'}">${editing?'Save Attendance Changes':'Save Attendance'}</button>
+  ${editing?'<button class="secondary" onclick="cancelAttendanceEdit('+i+','+si+')">Cancel Edit</button>':''}
+ </div>
+ <div class="tablewrap no-att-scroll" style="margin-top:8px"><table class="table att-table"><thead><tr><th>Sl.</th><th>Student Name / USN</th><th class="presentCell">Present</th><th class="absentCell">Absent</th></tr></thead><tbody id="attRows"></tbody></table></div>`;
+ window._editingAttendanceId=existingId;
+ renderAttTable(si,existing?.rows||null);
+}
+function renderAttTable(si,existingRows=null){
+ const a=get(KEY_AY)[window._attAY],s=a.semesters[si],map=new Map((existingRows||[]).map(r=>[r.usn,r.status]));
+ document.getElementById('attRows').innerHTML=s.rows.filter(r=>r.status==='Active').map((r,i)=>{
+  const status=map.get(r.usn)||'P';
+  return `<tr class="${status==='P'?'presentCell':'absentCell'}"><td>${i+1}</td><td><b>${esc(r.name)}</b><br><span class="muted">${esc(r.usn)}</span></td><td style="text-align:center"><label class="att-choice p-choice ${status==='P'?'selected':''}">P<input type="radio" name="att_${esc(r.usn)}" value="P" ${status==='P'?'checked':''} onchange="paintAtt(this)"></label></td><td style="text-align:center"><label class="att-choice a-choice ${status==='A'?'selected':''}">A<input type="radio" name="att_${esc(r.usn)}" value="A" ${status==='A'?'checked':''} onchange="paintAtt(this)"></label></td></tr>`;
+ }).join('');
+}
+function paintAtt(x){
+ const tr=x.closest('tr');tr.classList.remove('presentCell','absentCell');tr.classList.add(x.value==='P'?'presentCell':'absentCell');
+ tr.querySelectorAll('.att-choice').forEach(l=>l.classList.remove('selected'));x.closest('.att-choice').classList.add('selected');
+}
+function setAttendanceAll(v){document.querySelectorAll('#attRows input[value="'+v+'"]').forEach(x=>{x.checked=true;paintAtt(x)})}
+function collectAttendanceRows(si){
+ const a=get(KEY_AY)[window._attAY],s=a.semesters[si];
+ return s.rows.filter(r=>r.status==='Active').map(r=>{const el=document.querySelector('input[name="att_'+CSS.escape(r.usn)+'"]:checked');return{usn:r.usn,name:r.name,status:el?el.value:'A'}});
+}
+function saveAttendanceFirst(i){
+ const a=get(KEY_AY)[i],sel=document.getElementById('attSem').value;
+ if(sel===''){alertBox('Select a semester first.');return}
+ const si=+sel,s=a.semesters[si],date=new Date().toISOString().slice(0,10),time=document.getElementById('attTime').value,arr=get(KEY_ATT);
+ if(arr.some(x=>x.year===a.year&&x.semester===s.semester&&x.date===date&&x.time===time)){alertBox('Attendance for this date/time slot already exists.');renderTodayAttendanceCards(i,s.semester);return}
+ const rows=collectAttendanceRows(si);arr.push({year:a.year,semester:s.semester,date,time,rows});put(KEY_ATT,arr);showSavedAttendanceState(i,arr.length-1);
+}
+function updateAttendance(i,id){
+ const all=get(KEY_ATT),rec=all[id];if(!rec)return;
+ const a=get(KEY_AY)[i],si=a.semesters.findIndex(s=>s.semester===rec.semester);
+ if(si<0){alertBox('Semester roster not found.');return}
+ const rows=collectAttendanceRows(si),time=document.getElementById('attTime').value;
+ const duplicate=all.some((x,idx)=>idx!==id&&x.year===a.year&&x.semester===rec.semester&&x.date===new Date().toISOString().slice(0,10)&&x.time===time);
+ if(duplicate){alertBox('Another attendance record already exists for this semester and time today.');return}
+ rec.rows=rows;rec.date=new Date().toISOString().slice(0,10);rec.time=time;put(KEY_ATT,all);showSavedAttendanceState(i,id);
+}
+function showSavedAttendanceState(i,id){
+ const rec=get(KEY_ATT)[id];if(!rec)return;
+ document.getElementById('attWorkArea').innerHTML='<div class="notice ok">Attendance saved. Use the semester cards below to view or edit today\'s attendance.</div>';
+ renderTodayAttendanceCards(i,rec.semester);
+}
+function editSavedAttendance(i,id){
+ const rec=get(KEY_ATT)[id],a=get(KEY_AY)[i],si=a.semesters.findIndex(s=>s.semester===rec.semester);if(si<0){alertBox('Semester roster not found.');return}
+ document.getElementById('attSem').value=si;document.getElementById('attDate').value=new Date().toISOString().slice(0,10);document.getElementById('attTime').value=rec.time;loadAttendanceWorkArea(i,si,true,id);
+}
+function cancelAttendanceEdit(i,si){
+ const a=get(KEY_AY)[i],sem=a.semesters[si]?.semester;document.getElementById('attWorkArea').innerHTML='<div class="notice">Edit cancelled. Select a semester to mark attendance.</div>';renderTodayAttendanceCards(i,sem);
+}
+
+function showHistory(i){const a=get(KEY_AY)[i];document.getElementById('ayDash').innerHTML=`<button class="secondary back" onclick="openAY(${i})">← Back</button><div class="card"><div class="sectiontitle">Attendance History</div><div class="grid"><div><label>Semester</label><select id="histSem"><option>All</option>${a.semesters.map(s=>`<option>${s.semester}</option>`).join('')}</select></div><div><label>From Date</label><input id="histFrom" type="date"></div><div><label>To Date</label><input id="histTo" type="date"></div></div><div class="actions"><button class="primary" onclick="renderHistory(${i})">View History</button></div><div id="histResults" style="margin-top:12px"></div></div>`;renderHistory(i);show('ayDash')}
+function renderHistory(i){const a=get(KEY_AY)[i],all=get(KEY_ATT).filter(x=>x.year===a.year),sem=document.getElementById('histSem').value,from=document.getElementById('histFrom').value,to=document.getElementById('histTo').value,att=all.filter(x=>(sem==='All'||x.semester===sem)&&(!from||x.date>=from)&&(!to||x.date<=to)),dates=[...new Set(att.map(x=>x.date))].sort(),sems=sem==='All'?a.semesters:a.semesters.filter(s=>s.semester===sem),students=sems.flatMap(s=>s.rows.map(r=>({...r,sem:s.semester})));document.getElementById('histResults').innerHTML=dates.length?`<div class="tablewrap" style="overflow-x:hidden"><table class="table history-compact"><thead><tr><th style="width:34%;position:sticky;left:0;z-index:2">Student</th>${dates.map(d=>`<th>${d}<br><small>AM · PM</small></th>`).join('')}</tr></thead><tbody>${students.map(st=>`<tr><td><b>${esc(st.name)}</b><br><span class="muted">${esc(st.usn)}</span></td>${dates.map(d=>{let am=att.find(x=>x.date===d&&x.semester===st.sem&&x.time==='9:30 AM')?.rows.find(r=>r.usn===st.usn)?.status||'—';let pm=att.find(x=>x.date===d&&x.semester===st.sem&&x.time==='2:30 PM')?.rows.find(r=>r.usn===st.usn)?.status||'—';return`<td>${am} · ${pm}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`:'<div class="notice">No saved attendance matches the selected semester/date range.</div>'}
+function showExport(i){const a=get(KEY_AY)[i];document.getElementById('ayDash').innerHTML=`<button class="secondary back" onclick="openAY(${i})">← Back</button><div class="card"><div class="sectiontitle">Export Attendance</div><div class="grid"><div><label>Semester</label><select id="expSem"><option>All</option>${a.semesters.map(s=>`<option>${s.semester}</option>`).join('')}</select></div><div><label>From Date</label><input id="expFrom" type="date"></div><div><label>To Date</label><input id="expTo" type="date"></div></div><div class="actions"><button class="primary" onclick="previewExport(${i})">Preview</button><button class="secondary" onclick="openAY(${i})">Back</button></div><div id="expResults"></div></div>`;show('ayDash')}
+function getExportRows(i){const a=get(KEY_AY)[i],sem=document.getElementById('expSem').value,from=document.getElementById('expFrom').value,to=document.getElementById('expTo').value;return get(KEY_ATT).filter(x=>x.year===a.year&&(sem==='All'||x.semester===sem)&&(!from||x.date>=from)&&(!to||x.date<=to))}
+function previewExport(i){const att=getExportRows(i);document.getElementById('expResults').innerHTML=att.length?`<div class="notice ok">${att.length} attendance session(s) available.</div><div class="actions" style="margin-top:8px"><button class="success" onclick="downloadAttendanceCSV(${i})">Download CSV</button><button class="primary" onclick="downloadAttendanceExcel(${i})">Download Excel</button><button class="secondary" onclick="downloadAttendanceJSON(${i})">Backup JSON</button></div><div class="tablewrap" style="margin-top:8px"><table class="table" style="min-width:0;font-size:11px"><thead><tr><th>Date</th><th>Semester</th><th>Time</th><th>Students</th></tr></thead><tbody>${att.map(x=>`<tr><td>${x.date}</td><td>${x.semester}</td><td>${x.time}</td><td>${x.rows.length}</td></tr>`).join('')}</tbody></table></div>`:'<div class="notice">No saved attendance matches the selected scope.</div>'}
+function exportFileName(i,ext){const a=get(KEY_AY)[i],sem=document.getElementById('expSem').value;return `Civil_Attendance_${String(a.year).replace(/[^A-Za-z0-9-]/g,'_')}_${sem==='All'?'All':sem.replace(/\s+/g,'_')}.${ext}`}
+function downloadBlob(content,name,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function csvCell(v){const s=String(v??'');return `"${s.replace(/"/g,'""')}"`}
+function downloadAttendanceCSV(i){const att=getExportRows(i),out=[['Academic Year','Date','Time','Semester','USN','Student Name','Status','Recorded Time']];att.forEach(x=>x.rows.forEach(r=>out.push([x.year,x.date,x.time,x.semester,r.usn,r.name,r.status,r.recordedAt||''])));downloadBlob(out.map(row=>row.map(csvCell).join(',')).join('\r\n'),exportFileName(i,'csv'),'text/csv;charset=utf-8')}
+function downloadAttendanceExcel(i){const att=getExportRows(i),out=[];att.forEach(x=>x.rows.forEach(r=>out.push({'Academic Year':x.year,'Date':x.date,'Time':x.time,'Semester':x.semester,'USN':r.usn,'Student Name':r.name,'Status':r.status,'Recorded Time':r.recordedAt||''})));if(window.XLSX){const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(out);XLSX.utils.book_append_sheet(wb,ws,'Attendance');XLSX.writeFile(wb,exportFileName(i,'xlsx'))}else{downloadAttendanceCSV(i)}}
+function downloadAttendanceJSON(i){const att=getExportRows(i),a=get(KEY_AY)[i],payload={exportedAt:new Date().toISOString(),academicYear:a.year,semester:document.getElementById('expSem').value,from:document.getElementById('expFrom').value,to:document.getElementById('expTo').value,attendance:att};downloadBlob(JSON.stringify(payload,null,2),exportFileName(i,'json'),'application/json')}
+
+function showSummary(i){const a=get(KEY_AY)[i],att=get(KEY_ATT).filter(x=>x.year===a.year);document.getElementById('ayDash').innerHTML=`<button class="secondary back" onclick="openAY(${i})">← Back</button><div class="card"><div class="sectiontitle">Attendance Summary</div><div class="grid3">${a.semesters.map(s=>{const ss=att.filter(x=>x.semester===s.semester),total=ss.reduce((n,x)=>n+x.rows.length,0),present=ss.reduce((n,x)=>n+x.rows.filter(r=>r.status==='P').length,0);return`<div class="card"><b>${s.semester} Sem</b><div class="big">${total?Math.round(present/total*100):0}%</div><div class="muted">${present}/${total} present records</div></div>`}).join('')}</div></div>`;show('ayDash')}
+function showShortage(i){const a=get(KEY_AY)[i];document.getElementById('ayDash').innerHTML=`<button class="secondary back" onclick="openAY(${i})">← Back</button><div class="card"><div class="sectiontitle">Shortage</div><div class="grid"><div><label>Criteria</label><select id="shortCrit"><option value="75">Less than 75%</option><option value="85">76%–85%</option></select></div><div><label>Semester</label><select id="shortSem"><option>All</option>${a.semesters.map(s=>`<option>${s.semester}</option>`).join('')}</select></div></div><div class="actions"><button class="primary" onclick="previewShortage(${i})">View Shortage</button></div><div id="shortResults"></div></div>`;show('ayDash')}
+function previewShortage(i){const a=get(KEY_AY)[i],crit=+document.getElementById('shortCrit').value,sem=document.getElementById('shortSem').value,att=get(KEY_ATT).filter(x=>x.year===a.year&&(sem==='All'||x.semester===sem)),out=[];(sem==='All'?a.semesters:a.semesters.filter(s=>s.semester===sem)).forEach(s=>s.rows.filter(r=>r.status==='Active').forEach(r=>{const rec=att.filter(x=>x.semester===s.semester).flatMap(x=>x.rows.filter(z=>z.usn===r.usn));if(rec.length){const pct=rec.filter(z=>z.status==='P').length/rec.length*100;if((crit===75&&pct<75)||(crit===85&&pct>=76&&pct<=85))out.push({usn:r.usn,name:r.name,pct})}}));document.getElementById('shortResults').innerHTML=out.length?`<div class="tablewrap" style="margin-top:10px"><table class="table" style="min-width:0;font-size:11px"><thead><tr><th>USN</th><th>Student Name</th><th>Shortage</th></tr></thead><tbody>${out.map(x=>`<tr><td>${esc(x.usn)}</td><td>${esc(x.name)}</td><td>${x.pct.toFixed(1)}%</td></tr>`).join('')}</tbody></table></div>`:'<div class="notice" style="margin-top:10px">No students match the selected shortage criteria.</div>'}
+function openDB(i){
+ const b=get(KEY_DB)[i];
+ const usn=b.headers.find(h=>norm(h)==='usn')||b.headers[0];
+ const name=b.headers.find(h=>['fullname','studentname','name','nameofthestudent'].includes(norm(h)))||b.headers[0];
+ document.getElementById('dbDash').innerHTML=`<button class="secondary back" onclick="renderDBDashboard();show('dbDash')">← Back</button><div class="card hero"><div class="sectiontitle">${esc(b.year)} Batch</div><div class="muted">${b.rows.length} students</div></div><div class="card"><div class="grid"><div><label>Search By</label><select id="dbSearchBy"><option value="${esc(usn)}">USN</option><option value="${esc(name)}">Name</option></select></div><div><label>Search Field</label><input id="dbSearch" placeholder="Type USN or student name"></div></div><div class="actions"><button class="primary" onclick="searchDB(${i})">Search</button></div><div id="dbResults"></div></div>`;renderDBAll(i);show('dbDash')}
+function renderDBAll(i){const b=get(KEY_DB)[i];document.getElementById('dbResults').innerHTML=tableDB(b,i,b.rows)}
+function tableDB(b,i,rows){const usn=b.headers.find(h=>norm(h)==='usn')||b.headers[0],name=b.headers.find(h=>['fullname','studentname','name'].includes(norm(h)))||b.headers[0];return `<div class="tablewrap"><table class="table"><thead><tr><th>Sl.</th><th>View/Edit</th><th>${esc(name)}</th><th>${esc(usn)}</th>${b.headers.filter(h=>h!==name&&h!==usn).slice(0,6).map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map((r,j)=>`<tr><td>${j+1}</td><td><button class="secondary" onclick="profileDB(${i},${b.rows.indexOf(r)})">View/Edit</button></td><td>${esc(r[name])}</td><td>${esc(r[usn])}</td>${b.headers.filter(h=>h!==name&&h!==usn).slice(0,6).map(h=>`<td>${esc(r[h])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+function searchDB(i){const b=get(KEY_DB)[i],by=document.getElementById('dbSearchBy').value,q=norm(document.getElementById('dbSearch').value);const rows=b.rows.filter(r=>norm(r[by]).includes(q));document.getElementById('dbResults').innerHTML=tableDB(b,i,rows)}
+function profileDB(i,j){const all=get(KEY_DB),b=all[i],r=b.rows[j];document.getElementById('profile').innerHTML=`<button class="secondary back" onclick="openDB(${i})">← Back</button><div class="card"><div class="sectiontitle">Student Profile</div><div id="profileFields">${b.headers.map((h,k)=>`<label>${esc(h)}<input data-pf="${k}" value="${esc(r[h])}"></label>`).join('')}</div><div class="actions"><button class="secondary" onclick="openDB(${i})">Cancel</button><button class="success" onclick="saveProfile(${i},${j})">Save</button></div></div>`;show('profile')}
+function saveProfile(i,j){const all=get(KEY_DB),b=all[i];b.headers.forEach((h,k)=>b.rows[j][h]=document.querySelector(`[data-pf="${k}"]`).value);put(KEY_DB,all);openDB(i)}
+renderHome();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</body>
+</html>
